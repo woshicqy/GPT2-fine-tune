@@ -1,4 +1,4 @@
-from transformers import BertTokenizer, GPT2LMHeadModel, TextGenerationPipeline,GPT2Tokenizer
+from transformers import BertTokenizer, GPT2LMHeadModel, TextGenerationPipeline,GPT2Tokenizer,GPT2Model
 from transformers import TextDataset, DataCollatorForLanguageModeling
 from transformers import Trainer, TrainingArguments
 
@@ -31,7 +31,7 @@ def cleaning(s):
 
 def cvs2txt(origin_filename,saving_file):
 
-    df = pd.read_csv(origin_filename, encoding="ISO-8859-1") 
+    df = pd.read_csv(origin_filename) 
     df = df.dropna()
     text_data = open(saving_file, 'w')
     for idx, item in df.iterrows():
@@ -62,12 +62,20 @@ def load_data_collator(tokenizer, mlm = False):
 def train(train_file_path,model_name,output_dir,overwrite_output_dir,per_device_train_batch_size,num_train_epochs,save_steps,date):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('>>>>>> Using %s to train your model <<<<<<'%device)
-    tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
+    # proxies = {'http':'http://127.0.0.1:7890', 'https':'http://127.0.0.1:7890'}
+
+    tokenizer = GPT2Tokenizer.from_pretrained(model_name,from_tf=True)
+    # tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
     train_dataset = load_dataset(train_file_path, tokenizer)
     data_collator = load_data_collator(tokenizer)
-    # tokenizer.save_pretrained(output_dir)
-    model = GPT2LMHeadModel.from_pretrained(model_name)
-    # model.save_pretrained(output_dir)
+    tokenizer.save_pretrained(output_dir)
+
+    model = GPT2Model.from_pretrained(model_name,from_tf=True)
+    # model = GPT2Model.from_pretrained(model_name)
+
+    model.save_pretrained(output_dir)
     training_args = TrainingArguments(
         output_dir=output_dir,
         overwrite_output_dir=overwrite_output_dir,
@@ -90,18 +98,18 @@ def train(train_file_path,model_name,output_dir,overwrite_output_dir,per_device_
 
 if __name__ == '__main__':
     import os
-    origin_filename = "Articles.csv"
-    saving_file = "Articles.txt"
-    cvs2txt(origin_filename,saving_file)
+    # origin_filename = "Articles.csv"
+    # saving_file = "Articles.txt"
+    # cvs2txt(origin_filename,saving_file)
 
 
     today = datetime.date.today()
     train_file_path = "Articles.txt"
-    model_name = 'gpt2'
+    model_name = 'gpt2-medium'
     
     path = os.getcwd()
     # print(f'path:{path}')
-    output_dir = 'gpt2-fine-tune/'
+    output_dir = 'gpt2-model/'
     new_output_dir = output_dir+str(today)
     path = os.path.join(path,new_output_dir)
     # print(f'path:{path}')
