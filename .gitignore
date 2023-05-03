@@ -1,3 +1,8 @@
 
 # ignore all .bin files -> models
 *.bin
+
+# ignore folders
+
+chatglm-6b/
+chatglm-6b-back_up/
